@@ -44,8 +44,8 @@
 }
 
 .activeTab {
-  color: #003176;
-  border-bottom-color: #003176;
+  color: #a92427;
+  border-bottom-color: #a92427;
   background-color: #f8f9fa;
 }
 
@@ -182,7 +182,7 @@
 }
 
 .submitButton {
-  background: #003176;
+  background: #a92427;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -195,7 +195,7 @@
 
 .submitButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px #003176;
+  box-shadow: 0 5px 15px #a92427;
 }
 
 .submitButton:disabled {

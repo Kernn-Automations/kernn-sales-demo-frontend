@@ -44,9 +44,9 @@
 }
 
 .activeFilter {
-  background-color: #003176;
+  background-color: #a92427;
   color: white;
-  border-color: #003176;
+  border-color: #a92427;
 }
 
 .activeFilter:hover {
@@ -169,7 +169,7 @@
 
 /* Product Info Banner */
 .productInfoBanner {
-  background: #003176;
+  background: #a92427;
   color: white;
   padding: 16px 20px;
   border-radius: 8px;
@@ -221,8 +221,8 @@
 
 .tab {
   background: #fff;
-  border: 1px solid #003176;
-  color: #003176;
+  border: 1px solid #a92427;
+  color: #a92427;
   padding: 10px 20px;
   border-radius: 6px;
   cursor: pointer;
@@ -240,9 +240,9 @@
 }
 
 .active {
-  background-color: #003176;
+  background-color: #a92427;
   color: white;
-  border-color: #003176;
+  border-color: #a92427;
 }
 
 .active:hover {

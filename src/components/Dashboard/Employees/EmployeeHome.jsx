@@ -168,6 +168,12 @@ function EmployeeHome({ navigate, isAdmin }) {
           >
             Teams
           </button>
+          <button
+            className="homebtn"
+            onClick={() => navigate("/employees/organization")}
+          >
+            Employee Organization
+          </button>
         </div>
       </div>
 

@@ -188,3 +188,462 @@
 .deltext span{
   font-weight: 600;
 }
+
+/* Employee Organization Styles */
+.orgContainer {
+  padding: 20px;
+  width: 100%;
+}
+
+.orgHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.orgHeader h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.orgViewToggle {
+  display: flex;
+  gap: 10px;
+}
+
+.orgViewToggle button {
+  padding: 8px 16px;
+  border: 1px solid var(--primary-color);
+  background-color: white;
+  color: var(--primary-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.orgViewToggle button:hover {
+  background-color: var(--primary-light);
+}
+
+.orgViewToggle button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.orgStats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.statCard {
+  flex: 1;
+  min-width: 150px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.statCard h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.statCard p {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.orgFilters {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
+
+.filterGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.filterGroup select {
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.filterGroup select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.clearFilters {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  height: fit-content;
+}
+
+.clearFilters:hover {
+  background-color: #5a6268;
+}
+
+.orgContent {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+  overflow: visible;
+}
+
+.orgTree {
+  width: 100%;
+}
+
+.orgTreeNode {
+  margin-bottom: 15px;
+}
+
+.orgNodeContent {
+  padding: 12px;
+  background: #f8f9fa;
+  border-left: 3px solid var(--primary-color);
+  border-radius: 4px;
+}
+
+.orgNodeHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.orgNodeHeader strong {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.orgRole {
+  padding: 4px 8px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.orgDivision {
+  padding: 4px 8px;
+  background-color: #6c757d;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.orgSubCount {
+  padding: 4px 8px;
+  background-color: #17a2b8;
+  color: white;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.orgNodeDetails {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #666;
+}
+
+.orgNodeDetails span {
+  display: flex;
+  align-items: center;
+}
+
+.orgTreeChildren {
+  margin-top: 10px;
+  padding-left: 20px;
+  border-left: 2px dashed #d9d9d9;
+}
+
+.orgFlatList {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.orgTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.orgTable thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.orgTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.orgTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.orgTable tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.active {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.inactive {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.orgEmpty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.orgEmpty p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.clickableRow:hover {
+  background-color: #e3f2fd !important;
+}
+
+/* Employee Detail Modal */
+.employeeDetailModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modalContent {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid var(--primary-color);
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.detailSection {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detailSection:last-child {
+  border-bottom: none;
+}
+
+.detailSection h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin: 0 0 15px 0;
+}
+
+.detailRow {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: #666;
+  min-width: 150px;
+  margin-right: 15px;
+}
+
+.detailValue {
+  color: #333;
+  flex: 1;
+}
+
+.subordinatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subordinateItem {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.subordinateName {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.subordinateDetails {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .orgHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .orgStats {
+    flex-direction: column;
+  }
+
+  .statCard {
+    min-width: 100%;
+  }
+
+  .orgFilters {
+    flex-direction: column;
+  }
+
+  .filterGroup {
+    width: 100%;
+  }
+
+  .orgTable {
+    font-size: 12px;
+  }
+
+  .orgTable th,
+  .orgTable td {
+    padding: 8px;
+  }
+
+  .modalContent {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .detailLabel {
+    min-width: 120px;
+    font-size: 14px;
+  }
+
+  .detailValue {
+    font-size: 14px;
+  }
+}

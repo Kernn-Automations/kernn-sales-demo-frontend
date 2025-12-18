@@ -119,9 +119,9 @@
 }
 .p {
   font-size: 23px;
-  font-weight: 500;
+  font-weight: 700;
   text-align: center;
-  color: var(--secondary-color);
+  color: black;
 }
 
 .label {

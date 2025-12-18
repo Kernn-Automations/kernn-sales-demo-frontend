@@ -326,7 +326,7 @@ function TeamDetails() {
                 <strong>Team Info</strong>
                 <button 
                   className="btn btn-sm" 
-                  style={{ backgroundColor: '#003176', borderColor: '#003176', color: '#fff' }} 
+                  style={{ backgroundColor: '#a92427', borderColor: '#a92427', color: '#fff' }} 
                   disabled={statusSaving || teamStatus === team.isActive} 
                   onClick={handleSaveTeamStatus}
                 >
@@ -373,7 +373,7 @@ function TeamDetails() {
             <div className="card mb-3">
               <div className="card-header d-flex justify-content-between align-items-center">
                 <strong>Products & Pricing</strong>
-                <button className="btn btn-sm" style={{ backgroundColor: '#003176', borderColor: '#003176', color: '#fff' }} disabled={saving} onClick={handleSaveProducts}>
+                <button className="btn btn-sm" style={{ backgroundColor: '#a92427', borderColor: '#a92427', color: '#fff' }} disabled={saving} onClick={handleSaveProducts}>
                   {saving ? 'Saving...' : 'Save Products'}
                 </button>
               </div>
@@ -453,7 +453,7 @@ function TeamDetails() {
                     <small className="text-muted">Loading warehouses...</small>
                   )}
                 </div>
-                <button className="btn w-100" style={{ backgroundColor: '#003176', borderColor: '#003176', color: '#fff' }} disabled={saving || !warehouseId || warehousesLoading} onClick={handleAssignWarehouse}>
+                <button className="btn w-100" style={{ backgroundColor: '#a92427', borderColor: '#a92427', color: '#fff' }} disabled={saving || !warehouseId || warehousesLoading} onClick={handleAssignWarehouse}>
                   {saving ? 'Assigning...' : 'Assign'}
                 </button>
               </div>
@@ -465,11 +465,11 @@ function TeamDetails() {
               </div>
               <div className="card-body">
                 <div className="d-flex flex-column gap-2">
-                  <button className="btn" style={{ backgroundColor: '#003176', borderColor: '#003176', color: '#fff' }} onClick={() => setIsBillToBillOpen(true)}>
+                  <button className="btn" style={{ backgroundColor: '#a92427', borderColor: '#a92427', color: '#fff' }} onClick={() => setIsBillToBillOpen(true)}>
                     <i className="bi bi-plus-circle me-1"></i>
                     Add Bill-to-Bill Discount
                   </button>
-                  <button className="btn" style={{ backgroundColor: '#003176', borderColor: '#003176', color: '#fff' }} onClick={() => setIsMonthlyOpen(true)}>
+                  <button className="btn" style={{ backgroundColor: '#a92427', borderColor: '#a92427', color: '#fff' }} onClick={() => setIsMonthlyOpen(true)}>
                     <i className="bi bi-plus-circle me-1"></i>
                     Add Monthly Discount
                   </button>

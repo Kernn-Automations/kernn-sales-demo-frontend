@@ -2069,7 +2069,7 @@ export default function SalesOrderWizard() {
                 padding: '6px 12px',
                 border: 'none',
                 borderRadius: '4px',
-                backgroundColor: !inputQuantity || parseInt(inputQuantity) <= 0 ? '#e2e8f0' : '#003176',
+                backgroundColor: !inputQuantity || parseInt(inputQuantity) <= 0 ? '#e2e8f0' : '#a92427',
                 color: !inputQuantity || parseInt(inputQuantity) <= 0 ? '#a0aec0' : 'white',
                 cursor: !inputQuantity || parseInt(inputQuantity) <= 0 ? 'not-allowed' : 'pointer',
                 fontSize: '14px'

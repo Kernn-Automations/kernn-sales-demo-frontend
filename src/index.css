@@ -3,14 +3,14 @@
 
 
 :root{
-  --primary-color: #003176;
+  --primary-color: #a92427;
   --secondary-color: #24a435;
-  --primary-active-opacity: #0031763d;
-  --primary-hover-opacity: #00317614;
-  --primary-active: #01214e;
-  --primary-hover: #022658;
-  --primary-light: #ebf2ff;
-  --primary-light-hover: #d2e0fb;
+  --primary-active-opacity: #a924273d;
+  --primary-hover-opacity: #a9242714;
+  --primary-active: #7d1b1d;
+  --primary-hover: #8a1f21;
+  --primary-light: #ffebed;
+  --primary-light-hover: #ffd2d4;
   
 }
 
