@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import styles from "./OrganizationTree.module.css";
 
 // Color palette for different levels and branches
@@ -99,6 +100,68 @@ const TreeNode = ({ node, level = 0, branchIndex = 0, onNodeClick }) => {
 
 // Main Organization Tree Component
 const OrganizationTree = ({ data, onNodeClick }) => {
+  const containerRef = useRef(null);
+  const contentRef = useRef(null);
+  
+  // State for zoom percentage display
+  const [zoomPercent, setZoomPercent] = useState(100);
+
+  // Motion values for smooth transitions
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const scale = useMotionValue(1);
+
+  // Springs for smooth movement
+  const springX = useSpring(x, { stiffness: 300, damping: 30 });
+  const springY = useSpring(y, { stiffness: 300, damping: 30 });
+  const springScale = useSpring(scale, { stiffness: 300, damping: 30 });
+
+  const ZOOM_SPEED = 0.001;
+  const MIN_SCALE = 0.05;
+  const MAX_SCALE = 2;
+
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    
+    const delta = -e.deltaY;
+    const factor = Math.exp(delta * ZOOM_SPEED);
+    let newScale = scale.get() * factor;
+    
+    // Clamp scale
+    newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+    
+    scale.set(newScale);
+    setZoomPercent(Math.round(newScale * 100));
+  }, [scale]);
+
+  const resetView = useCallback(() => {
+    if (!containerRef.current || !contentRef.current) return;
+
+    const container = containerRef.current.getBoundingClientRect();
+    
+    // Measure natural natural size (unscaled)
+    const naturalWidth = contentRef.current.scrollWidth;
+    const naturalHeight = contentRef.current.scrollHeight;
+
+    const scaleX = (container.width * 0.9) / naturalWidth;
+    const scaleY = (container.height * 0.9) / naturalHeight;
+    const newScale = Math.min(scaleX, scaleY, 0.8); // Fit to 90% of screen, max 80% zoom
+
+    scale.set(newScale);
+    x.set(0);
+    y.set(0);
+    setZoomPercent(Math.round(newScale * 100));
+  }, [x, y, scale]);
+
+  // Initial fit to screen
+  useEffect(() => {
+    if (data && data.length > 0) {
+      // Give DOM time to render
+      const timer = setTimeout(resetView, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [data, resetView]);
+
   if (!data || data.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -108,17 +171,60 @@ const OrganizationTree = ({ data, onNodeClick }) => {
   }
 
   return (
-    <div className={styles.organizationTree}>
-      <div className={styles.treeContainer}>
-        {data.map((rootNode, index) => (
-          <TreeNode 
-            key={rootNode.id || rootNode.employeeId || index} 
-            node={rootNode} 
-            level={0}
-            branchIndex={index}
-            onNodeClick={onNodeClick}
-          />
-        ))}
+    <div 
+      className={styles.organizationTree} 
+      ref={containerRef}
+      onWheel={handleWheel}
+    >
+      <div className={styles.instructions}>
+        Zoom: Mouse Wheel | Pan: Click & Drag
+      </div>
+
+      <div className={styles.treeViewport}>
+        <motion.div 
+          className={styles.treeContainer}
+          ref={contentRef}
+          drag
+          dragMomentum={true}
+          style={{ x, y, scale }}
+          onDragEnd={(e, info) => {
+             // Framer motion updates x/y motion values automatically!
+          }}
+        >
+          {data.map((rootNode, index) => (
+            <TreeNode 
+              key={rootNode.id || rootNode.employeeId || index} 
+              node={rootNode} 
+              level={0}
+              branchIndex={index}
+              onNodeClick={onNodeClick}
+            />
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Zoom Controls */}
+      <div className={styles.zoomControls}>
+        <button 
+          className={styles.zoomBtn} 
+          onClick={() => {
+            const newScale = Math.min(scale.get() + 0.1, MAX_SCALE);
+            scale.set(newScale);
+            setZoomPercent(Math.round(newScale * 100));
+          }}
+          title="Zoom In"
+        >+</button>
+        <button 
+          className={styles.zoomBtn} 
+          onClick={() => {
+            const newScale = Math.max(scale.get() - 0.1, MIN_SCALE);
+            scale.set(newScale);
+            setZoomPercent(Math.round(newScale * 100));
+          }}
+          title="Zoom Out"
+        >-</button>
+        <div className={styles.zoomPercentage}>{zoomPercent}%</div>
+        <button className={styles.resetBtn} onClick={resetView}>Fit to Screen</button>
       </div>
     </div>
   );

@@ -67,36 +67,12 @@ function EmployeeOrganization({ navigate }) {
     }
   };
 
-  // Fetch all filters from single endpoint
+  // Fetch all filters individually since combined endpoint does not exist
   const fetchAllFilters = async () => {
-    try {
-      const res = await axiosAPI.get("/hierarchy/filters");
-      if (res.data && res.data.success && res.data.data) {
-        const filters = res.data.data;
-        // Set divisions
-        if (filters.divisions && Array.isArray(filters.divisions)) {
-          setDivisions(filters.divisions);
-        }
-        // Set roles
-        if (filters.roles && Array.isArray(filters.roles)) {
-          setRoles(filters.roles);
-        }
-        // Note: zones, subzones, teams will be fetched dynamically based on selections
-      } else if (res.data) {
-        // Handle direct response
-        if (res.data.divisions && Array.isArray(res.data.divisions)) {
-          setDivisions(res.data.divisions);
-        }
-        if (res.data.roles && Array.isArray(res.data.roles)) {
-          setRoles(res.data.roles);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch filters:", err);
-      // Fallback to individual endpoints
-      fetchDivisionsFallback();
-      fetchRolesFallback();
-    }
+    // These functions have their own error handling and fallback logic
+    fetchDivisionsFallback();
+    fetchRolesFallback();
+    // Zones, subzones, and teams are already handled by dynamic dependencies in useEffect
   };
 
   // Fallback: Fetch divisions
