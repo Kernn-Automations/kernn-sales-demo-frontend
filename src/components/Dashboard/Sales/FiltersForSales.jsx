@@ -1,6 +1,7 @@
 import { useAuth } from "@/Auth";
 import CustomSearchDropdown from "@/utils/CustomSearchDropDown";
 import React, { useEffect, useState } from "react";
+import styles from "./Sales.module.css";
 
 function FiltersForSales({
   divisionId,
@@ -13,6 +14,7 @@ function FiltersForSales({
   setTeamsId,
   employeeId,
   setEmployeeId,
+  isDivisionDisabled = false,
 }) {
   const [divisions, setDivisions] = useState();
   const [zones, setZones] = useState();
@@ -110,19 +112,37 @@ function FiltersForSales({
     <>
       <div className={`col-3 formcontent`}>
         <label htmlFor="">Divisions</label>
-        <select
-          name=""
-          id=""
-          value={divisionId}
-          onChange={(e) =>
-            setDivisionId(e.target.value === "null" ? null : e.target.value)
-          }
-        >
-          <option value="null">--select--</option>
-          {divisions?.map((d) => (
-            <option value={d.id}>{d.name}</option>
-          ))}
-        </select>
+        {isDivisionDisabled ? (
+          <select
+            name=""
+            id=""
+            value={divisionId}
+            disabled={true}
+            className={styles.readOnlySelect}
+          >
+            <option value={divisionId}>
+              {divisions?.find((d) => d.id == divisionId)?.name ||
+                localStorage.getItem("currentDivisionName") ||
+                "Loading..."}
+            </option>
+          </select>
+        ) : (
+          <select
+            name=""
+            id=""
+            value={divisionId}
+            onChange={(e) =>
+              setDivisionId(e.target.value === "null" ? null : e.target.value)
+            }
+          >
+            <option value="null">--select--</option>
+            {divisions?.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className={`col-3 formcontent`}>

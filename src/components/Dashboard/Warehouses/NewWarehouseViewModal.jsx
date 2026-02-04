@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import NewWarehouseModal from "./NewWarehouseModal";
 
-function NewWarehouseViewModal({managers,products}) {
+function NewWarehouseViewModal({ managers, products, onSuccess }) {
   return (
     <>
       {/* <button
@@ -54,7 +54,11 @@ function NewWarehouseViewModal({managers,products}) {
         </DialogTrigger>
         <DialogContent className="mdl">
           <DialogBody>
-            <NewWarehouseModal managers={managers} products={products} />
+            <NewWarehouseModal
+              managers={managers}
+              products={products}
+              onSuccess={onSuccess}
+            />
           </DialogBody>
 
           <DialogCloseTrigger className="inputcolumn-mdl-close" />
