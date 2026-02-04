@@ -8,7 +8,7 @@ import Loading from "@/components/Loading";
 import SuccessModal from "@/components/SuccessModal";
 import { FaPen } from "react-icons/fa";
 
-function NewWarehouseModal({ managers, products }) {
+function NewWarehouseModal({ managers, products, onSuccess }) {
   const [name, setName] = useState();
   const [plot, setPlot] = useState();
   const [street, setStreet] = useState();
@@ -64,14 +64,12 @@ function NewWarehouseModal({ managers, products }) {
     if (!type) newErrors.type = true;
     if (!plot) newErrors.plot = true;
     if (!street) newErrors.street = true;
-    if (!area) newErrors.area = true;
     if (!city) newErrors.city = true;
     if (!district) newErrors.district = true;
     if (!state) newErrors.state = true;
     if (!country) newErrors.country = true;
     if (!pincode) newErrors.pincode = true;
     if (!type) newErrors.pincode = true;
-    if (!managerId) newErrors.managerId = true;
     if (!location?.lat || !location?.lng) newErrors.location = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -153,13 +151,17 @@ function NewWarehouseModal({ managers, products }) {
           longitude: location.lng,
           managerId,
           openingStock: openingStock.filter(
-            (s) => s.productId && s.stockQuantity
+            (s) => s.productId && s.stockQuantity,
           ),
-        }
+        };
 
         const res = await axiosAPI.post("/warehouse/add", payload);
 
         setSuccessful(res.data.message);
+
+        setTimeout(() => {
+          onSuccess?.();
+        }, 300);
       } catch (e) {
         console.log("Caught error:", e); // <-- Force print the error
         setError(e.response?.data?.message || "Error creating warehouse");
@@ -332,7 +334,9 @@ function NewWarehouseModal({ managers, products }) {
                 onClick={() => setShowMap(true)}
               />
             </>
-          ) : <button>Locate</button>}
+          ) : (
+            <button>Locate</button>
+          )}
         </div>
       </div>
 
@@ -368,7 +372,7 @@ function NewWarehouseModal({ managers, products }) {
                         onChange={(e) => {
                           const selectedId = e.target.value;
                           const selectedProduct = products.find(
-                            (p) => p.id == selectedId
+                            (p) => p.id == selectedId,
                           );
                           handleStockChange(index, "productId", selectedId);
                           if (selectedProduct) {
@@ -377,12 +381,12 @@ function NewWarehouseModal({ managers, products }) {
                               "primaryUnit",
                               selectedProduct.productType === "packed"
                                 ? "packets"
-                                : selectedProduct.unit
+                                : selectedProduct.unit,
                             );
                             handleStockChange(
                               index,
                               "productType",
-                              selectedProduct.productType || "loose"
+                              selectedProduct.productType || "loose",
                             );
                           }
                         }}
@@ -403,7 +407,7 @@ function NewWarehouseModal({ managers, products }) {
                           handleStockChange(
                             index,
                             "stockQuantity",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />

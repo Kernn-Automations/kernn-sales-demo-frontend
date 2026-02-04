@@ -5,56 +5,43 @@ import {
   DialogCloseTrigger,
   DialogContent,
   DialogRoot,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Portal } from "@chakra-ui/react";
 import GoogleMapLocator from "./GoogleMapLocator";
 
-function MapViewModal({ setLocation, defaultLocation, setDefaultLocation, onClose }) {
+function MapViewModal({
+  setLocation,
+  defaultLocation,
+  setDefaultLocation,
+  onClose,
+}) {
   return (
-    <>
-      {/* <button
-        type="button"
-        data-bs-toggle="modal"
-        data-bs-target="#pendingmodal"
-        className={styles.homebtn}
-      >
-        + Add BMC / CC
-      </button>
-
-      <div
-        class="modal fade"
-        id="pendingmodal"
-        data-bs-backdrop="static"
-        data-bs-keyboard="true"
-        tabindex="-1"
-        aria-labelledby="staticBackdropLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class={`modal-content ${styles.mdl}`}>
-            <div class="modal-body">
-            <p className="mdlp">
-              <button
-                type="button"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-                className="btn-close mdlclose"
-              ></button>
-              </p>
-
-             <NewBMCModal/>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      <DialogRoot placement={"center"} size={"xl"} className={styles.mdl} open={true}>
-        <DialogTrigger asChild>
-          <button className={styles.locate}>LOCATE</button>
-        </DialogTrigger>
-        <DialogContent className="mdl">
+    <DialogRoot
+      placement={"center"}
+      size={"xl"}
+      open={true}
+      trapFocus={false}
+      preventScroll={false}
+    >
+      <Portal>
+        {/* Added bg="white" and color="black" to force correct colors */}
+        <DialogContent
+          className={styles.mdl}
+          style={{
+            zIndex: 2000,
+            backgroundColor: "white", // Fixes black background
+            color: "black", // Ensures text is visible
+            borderRadius: "8px",
+            boxShadow: "0px 4px 20px rgba(0,0,0,0.2)",
+          }}
+        >
           <DialogBody>
-            <h3 className={`px-3 mdl-title`}>Locate on Map</h3>
+            <h3
+              className="px-3 mdl-title"
+              style={{ color: "#333", marginBottom: "15px" }}
+            >
+              Locate on Map
+            </h3>
             <div className="row justify-content-center">
               <div className="col-11 pb-3">
                 <GoogleMapLocator
@@ -67,10 +54,15 @@ function MapViewModal({ setLocation, defaultLocation, setDefaultLocation, onClos
             </div>
           </DialogBody>
 
-          <DialogCloseTrigger className="inputcolumn-mdl-close" />
+          {/* Close trigger with explicit color to ensure it shows against white */}
+          <DialogCloseTrigger
+            className="inputcolumn-mdl-close"
+            style={{ color: "black" }}
+            onClick={onClose}
+          />
         </DialogContent>
-      </DialogRoot>
-    </>
+      </Portal>
+    </DialogRoot>
   );
 }
 

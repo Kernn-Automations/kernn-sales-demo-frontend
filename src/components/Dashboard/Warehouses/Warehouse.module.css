@@ -11,6 +11,21 @@
   color: var(--primary-color);
 }
 
+.mapContainer {
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+/* Force the map to accept clicks and stay on top */
+.mdl [class*="gm-style"] {
+  pointer-events: auto !important;
+}
+
+/* Ensure the modal content doesn't eat the clicks */
+.mdl {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
 .intacc {
   background-color: var(--primary-color) !important;
   color: white !important;

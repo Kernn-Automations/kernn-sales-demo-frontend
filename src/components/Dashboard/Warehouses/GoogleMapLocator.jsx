@@ -26,7 +26,7 @@ const GoogleMapLocator = ({
   setLocation,
   defaultLocation,
   setDefaultLocation,
-  onClose
+  onClose,
 }) => {
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -43,7 +43,7 @@ const GoogleMapLocator = ({
       },
       (err) => {
         setError("Unable to retrieve your location: " + err.message);
-      }
+      },
     );
   }, []);
 
@@ -52,6 +52,11 @@ const GoogleMapLocator = ({
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const mapRef = useRef(null);
+
+  // Add an onUnmount callback
+  const onUnmount = useCallback(function callback(map) {
+    mapRef.current = null;
+  }, []);
 
   // console.log("locccc----", selectedPosition);
 
@@ -103,23 +108,27 @@ const GoogleMapLocator = ({
   // console.log(selectedPosition, selectedAddress);
   return (
     <div style={{ position: "relative" }}>
-      <div
+      {/*<div
         style={{
           position: "absolute",
           top: "10px",
           left: "50%",
           transform: "translateX(-50%)",
-          zIndex: 1000,
+          zIndex: 1001, // Must be higher than the map
         }}
+        // This prevents the map from "stealing" the click from the search box
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <SearchBox onSelectFromSearch={handleSelectFromSearch} />
-      </div>
+      </div>*/}
 
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={selectedPosition}
         zoom={12}
         onLoad={onMapLoad}
+        onUnmount={onUnmount}
         onClick={handleMapClick}
       >
         <MarkerF position={selectedPosition} />
