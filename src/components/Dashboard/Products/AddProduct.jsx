@@ -60,6 +60,8 @@ function AddProduct({ navigate }) {
   };
 
   useEffect(() => {
+    if (productType === "packed") return; // ❌ skip conversions
+
     const inventoryUnit = getInventoryUnit();
     if (!inventoryUnit) return;
 
@@ -263,7 +265,14 @@ function AddProduct({ navigate }) {
    * UNIT PRICE HANDLERS
    * ------------------------- */
   const addUnitPrice = () => {
-    setUnitPrices((p) => [...p, { unit: "", price: "", isDefault: false }]);
+    setUnitPrices((p) => [
+      ...p,
+      {
+        unit: productType === "packed" ? "pcs" : "",
+        price: "",
+        isDefault: false,
+      },
+    ]);
   };
 
   const updateUnitPrice = (index, key, value) => {
@@ -459,9 +468,18 @@ function AddProduct({ navigate }) {
               style={styles.input}
               value={productType}
               onChange={(e) => {
-                setProductType(e.target.value);
-                setMeasurementType("");
-                setUnit("");
+                const type = e.target.value;
+                setProductType(type);
+
+                if (type === "packed") {
+                  setMeasurementType("count"); // ✅ force count
+                  setUnit("pcs"); // ✅ base selling unit
+                  setConversionUnits([]); // ❌ no conversions
+                } else {
+                  setMeasurementType("");
+                  setUnit("");
+                }
+
                 setUnitPrices([]);
               }}
             >
@@ -476,15 +494,11 @@ function AddProduct({ navigate }) {
             <select
               style={{
                 ...styles.input,
-                ...(!productType && styles.inputDisabled),
+                ...(productType === "packed" && styles.inputDisabled),
               }}
               value={measurementType}
-              disabled={!productType}
-              onChange={(e) => {
-                setMeasurementType(e.target.value);
-                setUnit("");
-                setUnitPrices([]);
-              }}
+              disabled={productType === "packed"}
+              onChange={(e) => setMeasurementType(e.target.value)}
             >
               <option value="">Select measurement</option>
               {Object.keys(MEASUREMENT_UNITS).map((m) => (
@@ -512,6 +526,35 @@ function AddProduct({ navigate }) {
           )}
         </div>
       </section>
+
+      {productType === "packed" && (
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Package Weight *</label>
+            <input
+              style={styles.input}
+              type="number"
+              placeholder="Enter package weight"
+              value={packageWeight}
+              onChange={(e) => setPackageWeight(e.target.value)}
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Package Weight Unit *</label>
+            <select
+              style={styles.input}
+              value={packageWeightUnit}
+              onChange={(e) => setPackageWeightUnit(e.target.value)}
+            >
+              <option value="">Select unit</option>
+              {PACKAGE_UNITS.map((u) => (
+                <option key={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* UNIT PRICING */}
       <section style={styles.card}>
@@ -607,119 +650,121 @@ function AddProduct({ navigate }) {
       </section>
 
       {/* UNIT CONVERSIONS */}
-      <section style={styles.card}>
-        <div style={styles.cardHeader}>
-          <h4 style={styles.cardTitle}>Unit Conversions</h4>
-          <span style={styles.infoText}>
-            Required to sell in multiple units
-          </span>
-        </div>
+      {productType !== "packed" && (
+        <section style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h4 style={styles.cardTitle}>Unit Conversions</h4>
+            <span style={styles.infoText}>
+              Required to sell in multiple units
+            </span>
+          </div>
 
-        {conversionUnits.length === 0 ? (
-          <p style={{ color: "#64748b", fontSize: 14 }}>
-            No conversion rules required
-          </p>
-        ) : (
-          conversionUnits.map((c, i) => (
-            <div
-              key={c.fromUnit}
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-              }}
-            >
-              <strong>
-                {c.fromUnit} → {c.toUnit}
-              </strong>
+          {conversionUnits.length === 0 ? (
+            <p style={{ color: "#64748b", fontSize: 14 }}>
+              No conversion rules required
+            </p>
+          ) : (
+            conversionUnits.map((c, i) => (
+              <div
+                key={c.fromUnit}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <strong>
+                  {c.fromUnit} → {c.toUnit}
+                </strong>
 
-              <div style={styles.grid}>
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Conversion Type</label>
-                  <select
-                    style={styles.input}
-                    value={c.conversionType}
-                    onChange={(e) =>
-                      updateConversion(i, "conversionType", e.target.value)
-                    }
-                  >
-                    <option value="FIXED">Fixed</option>
-                    <option value="FORMULA">Formula</option>
-                  </select>
-                </div>
-
-                {c.conversionType === "FIXED" && (
+                <div style={styles.grid}>
                   <div style={styles.inputGroup}>
-                    <label style={styles.label}>Factor</label>
-                    <input
+                    <label style={styles.label}>Conversion Type</label>
+                    <select
                       style={styles.input}
-                      type="number"
-                      placeholder="e.g. 2.5"
-                      value={c.factor}
+                      value={c.conversionType}
                       onChange={(e) =>
-                        updateConversion(i, "factor", e.target.value)
+                        updateConversion(i, "conversionType", e.target.value)
                       }
-                    />
+                    >
+                      <option value="FIXED">Fixed</option>
+                      <option value="FORMULA">Formula</option>
+                    </select>
                   </div>
-                )}
 
-                {c.conversionType === "FORMULA" && (
-                  <>
+                  {c.conversionType === "FIXED" && (
                     <div style={styles.inputGroup}>
-                      <label style={styles.label}>Length (m)</label>
+                      <label style={styles.label}>Factor</label>
                       <input
                         style={styles.input}
                         type="number"
-                        value={c.length}
+                        placeholder="e.g. 2.5"
+                        value={c.factor}
                         onChange={(e) =>
-                          updateConversion(i, "length", e.target.value)
+                          updateConversion(i, "factor", e.target.value)
                         }
                       />
                     </div>
+                  )}
 
-                    <div style={styles.inputGroup}>
-                      <label style={styles.label}>Width (m)</label>
-                      <input
-                        style={styles.input}
-                        type="number"
-                        value={c.width}
-                        onChange={(e) =>
-                          updateConversion(i, "width", e.target.value)
-                        }
-                      />
-                    </div>
+                  {c.conversionType === "FORMULA" && (
+                    <>
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Length (m)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.length}
+                          onChange={(e) =>
+                            updateConversion(i, "length", e.target.value)
+                          }
+                        />
+                      </div>
 
-                    <div style={styles.inputGroup}>
-                      <label style={styles.label}>Thickness (mm)</label>
-                      <input
-                        style={styles.input}
-                        type="number"
-                        value={c.thickness}
-                        onChange={(e) =>
-                          updateConversion(i, "thickness", e.target.value)
-                        }
-                      />
-                    </div>
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Width (m)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.width}
+                          onChange={(e) =>
+                            updateConversion(i, "width", e.target.value)
+                          }
+                        />
+                      </div>
 
-                    <div style={styles.inputGroup}>
-                      <label style={styles.label}>Density (kg/m³)</label>
-                      <input
-                        style={styles.input}
-                        type="number"
-                        value={c.density}
-                        onChange={(e) =>
-                          updateConversion(i, "density", e.target.value)
-                        }
-                      />
-                    </div>
-                  </>
-                )}
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Thickness (mm)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.thickness}
+                          onChange={(e) =>
+                            updateConversion(i, "thickness", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Density (kg/m³)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.density}
+                          onChange={(e) =>
+                            updateConversion(i, "density", e.target.value)
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </section>
+            ))
+          )}
+        </section>
+      )}
 
       {/* TAX LINKING - NEW SECTION */}
       {/* TAX LINKING - IMPROVED SECTION */}
