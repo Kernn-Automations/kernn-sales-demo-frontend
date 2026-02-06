@@ -19,7 +19,7 @@ function LocationsHome() {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
 
   const [locations, setLocations] = useState([]);
@@ -29,7 +29,41 @@ function LocationsHome() {
   const { axiosAPI } = useAuth();
   const isLoaded = typeof window !== "undefined" && !!window.google;
 
-// Maps API is loaded globally in main.jsx via LoadScript
+  const DUMMY_EMPLOYEE_ID = "dummy-hyd-field-001";
+
+  const dummyEmployee = {
+    id: DUMMY_EMPLOYEE_ID,
+    name: "Ravi Kumar (Field Sales - Demo)",
+    division: { name: "Hyderabad Sales" },
+  };
+
+  function generateDummyHyderabadRoute(dateStr) {
+    const startTime = new Date(`${dateStr}T09:30:00`);
+
+    const points = [
+      { lat: 17.4375, lng: 78.4483 }, // Ameerpet
+      { lat: 17.4849, lng: 78.4138 }, // Kukatpally
+      { lat: 17.4948, lng: 78.3996 }, // Miyapur
+      { lat: 17.467, lng: 78.4435 }, // Balanagar
+      { lat: 17.4399, lng: 78.4983 }, // Secunderabad
+      { lat: 17.4448, lng: 78.4661 }, // Begumpet
+      { lat: 17.4126, lng: 78.4482 }, // Banjara Hills
+      { lat: 17.4375, lng: 78.4483 }, // Back to Ameerpet
+    ];
+
+    return points.map((p, idx) => {
+      const t = new Date(startTime.getTime() + idx * 60 * 60 * 1000); // every 1 hr
+      return {
+        latitude: p.lat,
+        longitude: p.lng,
+        recordedAt: t.toISOString(),
+        batteryLevel: 95 - idx * 5,
+        employee: dummyEmployee,
+      };
+    });
+  }
+
+  // Maps API is loaded globally in main.jsx via LoadScript
 
   // Fetch employees on mount
   useEffect(() => {
@@ -58,17 +92,17 @@ function LocationsHome() {
           res.data.data &&
           Array.isArray(res.data.data)
         ) {
-          setEmployees(res.data.data);
+          setEmployees([dummyEmployee, ...res.data.data]);
         } else if (
           res.data &&
           res.data.employees &&
           Array.isArray(res.data.employees)
         ) {
-          setEmployees(res.data.employees);
+          setEmployees([dummyEmployee, ...res.data.data]);
         } else if (res.data && Array.isArray(res.data)) {
-          setEmployees(res.data);
+          setEmployees([dummyEmployee, ...res.data.data]);
         } else {
-          setEmployees([]);
+          setEmployees([dummyEmployee]);
         }
       } catch (e) {
         console.error("LocationsHome - Failed to fetch employees:", e);
@@ -110,7 +144,7 @@ function LocationsHome() {
         } else {
           // Use division-specific endpoint
           const res = await axiosAPI.get(
-            `/location/latest/division/${currentDivisionId}`
+            `/location/latest/division/${currentDivisionId}`,
           );
           if (res.data && res.data.success && res.data.data) {
             setLatestLocations(res.data.data);
@@ -128,6 +162,13 @@ function LocationsHome() {
   // Fetch locations
   useEffect(() => {
     if (!selectedEmployee || !selectedDate) return;
+    // 🧪 Dummy employee handling
+    if (selectedEmployee === DUMMY_EMPLOYEE_ID) {
+      const dummyLocations = generateDummyHyderabadRoute(selectedDate);
+      setLocations(dummyLocations);
+      setLoading(false);
+      return;
+    }
     setLocations([]);
 
     // Fetch previous locations for selected employee and date
@@ -210,7 +251,6 @@ function LocationsHome() {
         </div>
         {type === "employee" && (
           <>
-            
             <CustomSearchDropdown
               label="Employees"
               onSelect={setSelectedEmployee}
@@ -219,7 +259,7 @@ function LocationsHome() {
                 label: emp.name || emp.fullName || emp.employeeId || emp.id,
               }))}
             />
-            
+
             <div className="col-3 formcontent">
               <label htmlFor="date-select">Select Date: </label>
               <input
@@ -302,8 +342,8 @@ function LocationsHome() {
                     // Show all latest locations on map
                     setLocations(
                       latestLocations.filter(
-                        (loc) => loc.latitude && loc.longitude
-                      )
+                        (loc) => loc.latitude && loc.longitude,
+                      ),
                     );
                   }}
                 >
@@ -340,113 +380,165 @@ function LocationsHome() {
                 />
               )}
               {/* Markers for locations */}
-              {Array.isArray(locations) && locations.map((loc, idx) => {
-                // Handle both individual employee locations and latest locations
-                const employee =
-                  loc.employee ||
-                  employees.find((emp) => emp.id == selectedEmployee);
-                const isLatest = !selectedEmployee; // If no employee selected, all are "latest"
+              {Array.isArray(locations) &&
+                locations.map((loc, idx) => {
+                  // Handle both individual employee locations and latest locations
+                  const employee =
+                    loc.employee ||
+                    employees.find((emp) => emp.id == selectedEmployee);
+                  const isLatest = !selectedEmployee; // If no employee selected, all are "latest"
 
-                // Format date/time to IST
-                let dateObj = null;
-                let timeLabel = "";
-                if (
-                  loc.recordedAt ||
-                  loc.timestamp ||
-                  loc.time ||
-                  loc.createdAt
-                ) {
-                  const rawTime =
+                  const uniqueId =
+                    loc.id ||
+                    `${loc.latitude}-${loc.longitude}-${loc.recordedAt}`;
+
+                  // Format date/time to IST
+                  let dateObj = null;
+                  let timeLabel = "";
+                  if (
                     loc.recordedAt ||
                     loc.timestamp ||
                     loc.time ||
-                    loc.createdAt;
-                  dateObj = new Date(rawTime);
-                  if (!isNaN(dateObj)) {
-                    const pad = (n) => n.toString().padStart(2, "0");
-                    const day = pad(dateObj.getDate());
-                    const month = pad(dateObj.getMonth() + 1);
-                    const year = dateObj.getFullYear();
-                    const hours = pad(dateObj.getHours());
-                    const mins = pad(dateObj.getMinutes());
-                    const secs = pad(dateObj.getSeconds());
-                    timeLabel = `${day}/${month}/${year}, ${hours}:${mins}:${secs}`;
-                  } else {
-                    timeLabel = rawTime;
+                    loc.createdAt
+                  ) {
+                    const rawTime =
+                      loc.recordedAt ||
+                      loc.timestamp ||
+                      loc.time ||
+                      loc.createdAt;
+                    dateObj = new Date(rawTime);
+                    if (!isNaN(dateObj)) {
+                      const pad = (n) => n.toString().padStart(2, "0");
+                      const day = pad(dateObj.getDate());
+                      const month = pad(dateObj.getMonth() + 1);
+                      const year = dateObj.getFullYear();
+                      const hours = pad(dateObj.getHours());
+                      const mins = pad(dateObj.getMinutes());
+                      const secs = pad(dateObj.getSeconds());
+                      timeLabel = `${day}/${month}/${year}, ${hours}:${mins}:${secs}`;
+                    } else {
+                      timeLabel = rawTime;
+                    }
                   }
-                }
 
-                // Get battery percent
-                const battery =
-                  loc.batteryLevel ??
-                  loc.batteryPercent ??
-                  loc.battery_percentage ??
-                  loc.battery ??
-                  null;
+                  // Get battery percent
+                  const battery =
+                    loc.batteryLevel ??
+                    loc.batteryPercent ??
+                    loc.battery_percentage ??
+                    loc.battery ??
+                    null;
 
-                return (
-                  <MarkerF
-                    key={idx}
-                    position={{
-                      lat: Number(loc.latitude),
-                      lng: Number(loc.longitude),
-                    }}
-                    icon={{
-                      url: isLatest
-                        ? "data:image/svg+xml;utf-8,<svg height='28' width='28' xmlns='http://www.w3.org/2000/svg'><circle cx='14' cy='14' r='10' fill='%23FF0000' stroke='white' stroke-width='3'/><circle cx='14' cy='14' r='4' fill='white'/></svg>"
-                        : "data:image/svg+xml;utf-8,<svg height='24' width='24' xmlns='http://www.w3.org/2000/svg'><circle cx='12' cy='12' r='8' fill='%2366BB6A' stroke='white' stroke-width='2'/></svg>",
-                      scaledSize: isLatest
-                        ? { width: 28, height: 28 }
-                        : { width: 24, height: 24 },
-                    }}
-                    title={`${isLatest ? "LATEST - " : ""}${employee?.name || "Employee"}: ${timeLabel}${battery !== null ? `, Battery: ${battery}%` : ""}`}
-                    onClick={() => setActiveMarker(idx)}
-                  >
-                    {activeMarker === idx && (
-                      <InfoWindow
-                        position={{
-                          lat: Number(loc.latitude),
-                          lng: Number(loc.longitude),
-                        }}
-                        onCloseClick={() => setActiveMarker(null)}
-                      >
-                        <div>
-                          <div><b>Employee:</b> {employee?.name || 'Unknown'}</div>
-                          <div><b>Date & Time (IST):</b> {timeLabel}</div>
-                          {isLatest && (
-                            <div
-                              style={{
-                                color: "#FF4444",
-                                fontWeight: "bold",
-                                marginBottom: "5px",
-                              }}
-                            >
-                              📍 LATEST LOCATION
+                  return (
+                    <MarkerF
+                      key={uniqueId}
+                      position={{
+                        lat: Number(loc.latitude),
+                        lng: Number(loc.longitude),
+                      }}
+                      icon={{
+                        url: isLatest
+                          ? "data:image/svg+xml;utf-8,<svg height='28' width='28' xmlns='http://www.w3.org/2000/svg'><circle cx='14' cy='14' r='10' fill='%23FF3B30' stroke='white' stroke-width='3'/><circle cx='14' cy='14' r='4' fill='white'/></svg>"
+                          : "data:image/svg+xml;utf-8,<svg height='24' width='24' xmlns='http://www.w3.org/2000/svg'><circle cx='12' cy='12' r='8' fill='%2334C759' stroke='white' stroke-width='2'/></svg>",
+                        scaledSize: isLatest
+                          ? { width: 28, height: 28 }
+                          : { width: 24, height: 24 },
+                      }}
+                      onClick={() =>
+                        setActiveMarker(
+                          activeMarker === uniqueId ? null : uniqueId,
+                        )
+                      }
+                    >
+                      {activeMarker === uniqueId && (
+                        <InfoWindow onCloseClick={() => setActiveMarker(null)}>
+                          <div
+                            style={{
+                              minWidth: "240px",
+                              padding: "6px 4px",
+                              fontFamily: "Inter, system-ui, Arial",
+                              fontSize: "13px",
+                              lineHeight: "1.4",
+                            }}
+                          >
+                            {isLatest && (
+                              <div
+                                style={{
+                                  background: "#FFECEC",
+                                  color: "#D32F2F",
+                                  fontWeight: 600,
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  marginBottom: "8px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                📍 LATEST LOCATION
+                              </div>
+                            )}
+
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ color: "#555", fontWeight: 500 }}>
+                                Employee:
+                              </span>
+                              <div style={{ fontWeight: 600 }}>
+                                {employee?.name || "Unknown"}
+                              </div>
                             </div>
-                          )}
-                          <div>
-                            <b>Employee:</b> {employee?.name || "Unknown"}
-                          </div>
-                          <div>
-                            <b>Division:</b>{" "}
-                            {employee?.division?.name ||
-                              loc.division?.name ||
-                              "N/A"}
-                          </div>
-                          <div>
-                            <b>Date & Time (IST):</b> {timeLabel}
-                          </div>
-                          {battery !== null && (
-                            <div>
-                              <b>Battery:</b> {battery}%
+
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ color: "#555", fontWeight: 500 }}>
+                                Division:
+                              </span>
+                              <div>
+                                {employee?.division?.name ||
+                                  loc.division?.name ||
+                                  "N/A"}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </InfoWindow>
-                    )}
-                  </MarkerF>
-                );
-              })}
+
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ color: "#555", fontWeight: 500 }}>
+                                Date & Time (IST):
+                              </span>
+                              <div>{timeLabel}</div>
+                            </div>
+
+                            {battery !== null && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  marginTop: "6px",
+                                }}
+                              >
+                                <span
+                                  style={{ color: "#555", fontWeight: 500 }}
+                                >
+                                  Battery:
+                                </span>
+                                <span
+                                  style={{
+                                    fontWeight: 600,
+                                    color:
+                                      battery <= 20
+                                        ? "#D32F2F"
+                                        : battery <= 50
+                                          ? "#F57C00"
+                                          : "#2E7D32",
+                                  }}
+                                >
+                                  {battery}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </InfoWindow>
+                      )}
+                    </MarkerF>
+                  );
+                })}
             </GoogleMap>
           </div>
         </div>
