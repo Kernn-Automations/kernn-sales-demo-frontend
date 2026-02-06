@@ -65,6 +65,40 @@ function NavBg({ hover, setTab, tab }) {
             {hover && <p>Inventory</p>}
           </Link>
         </div>
+        <div
+          className={`${
+            location.pathname.includes("manufacturing") ? styles.active : ""
+          } `}
+          onClick={() => setTab("manufacturing")}
+        >
+          <Link to="/manufacturing">
+            <svg
+              width="38"
+              height="38"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 21V8L8 12V8L13 12V8L21 12V21H3Z"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 21V15H18V21"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+
+            {hover && <p>Manufacturing</p>}
+          </Link>
+        </div>
+
         {roles.includes("Admin") && (
           <div
             className={`${

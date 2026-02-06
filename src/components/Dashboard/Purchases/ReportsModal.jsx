@@ -12,6 +12,7 @@ import PDFPreviewModal from "@/utils/PDFPreviewModal";
 import ErrorModal from "@/components/ErrorModal";
 import SuccessModal from "@/components/SuccessModal";
 import Loading from "@/components/Loading";
+import compressImageToUnder100KB from "@/services/compressImageUnder100kb";
 
 function getDamageColor(damagePercent) {
   if (damagePercent >= 50) return "#dc3545"; // red (>=50%)
@@ -20,7 +21,12 @@ function getDamageColor(damagePercent) {
   return "inherit";
 }
 
-function ReportsModal({ pdetails, warehouses, setWarehouses, onStockInSuccess }) {
+function ReportsModal({
+  pdetails,
+  warehouses,
+  setWarehouses,
+  onStockInSuccess,
+}) {
   const { axiosAPI } = useAuth();
   const token = localStorage.getItem("accessToken");
 
@@ -52,10 +58,7 @@ function ReportsModal({ pdetails, warehouses, setWarehouses, onStockInSuccess })
     setSuccessMessage("");
   };
 
-
-  
-
- // ✅ helper to compute live damaged total for a SKU including the "current input"
+  // ✅ helper to compute live damaged total for a SKU including the "current input"
   const getTotalDamagedForSku = (sku) => {
     const already = damagedRows
       .filter((d) => d.SKU === sku)
@@ -68,8 +71,6 @@ function ReportsModal({ pdetails, warehouses, setWarehouses, onStockInSuccess })
 
   const calculateReceivedQty = (orderedQty, damagedQtySum) =>
     Math.max(orderedQty - damagedQtySum, 0);
-
-  
 
   // Validate inputs for adding a new damaged good row
   const validateNewDamagedRow = () => {
@@ -129,200 +130,204 @@ function ReportsModal({ pdetails, warehouses, setWarehouses, onStockInSuccess })
   };
 
   // Handle upload event for new damaged good image preview
-  const handleNewImageUpload = (e) => {
+  const handleNewImageUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      setNewImageFile(null);
-      setNewImagePreview(null);
-      return;
-    }
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("❌ Only images are allowed for damaged goods");
+      alert("❌ Only image files are allowed");
       return;
     }
 
-    if (file.size > 100 * 1024) {
-      alert("❌ Each damaged good image must be less than 100KB");
-      return;
-    }
+    try {
+      const compressedBlob = await compressImageToUnder100KB(file);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewImageFile(reader.result); // ✅ base64 string
-      setNewImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewImageFile(reader.result); // base64
+        setNewImagePreview(reader.result); // preview
+      };
+      reader.readAsDataURL(compressedBlob);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to compress image");
+    }
   };
-
 
   // Handle delivery challan upload
   // ✅ preview DC (PDF or image)
   // Handle delivery challan upload
-  const handleDeliveryChallanUpload = (e) => {
-    const file = e.target.files?.[0] || null;
-    if (!file) {
-      setDeliveryChallanFile(null);
-      setDeliveryChallanPreview(null);
-      return;
-    }
+  const handleDeliveryChallanUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       alert("❌ Only image files are allowed for Delivery Challan");
       return;
     }
 
-    if (file.size > 100 * 1024) {
-      alert("❌ Delivery Challan must be less than 100KB");
-      return;
+    try {
+      const compressedBlob = await compressImageToUnder100KB(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDeliveryChallanFile(reader.result); // base64
+        setDeliveryChallanPreview({
+          type: "image",
+          url: reader.result,
+        });
+      };
+      reader.readAsDataURL(compressedBlob);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to compress Delivery Challan");
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setDeliveryChallanFile(reader.result); // ✅ store base64 string directly
-      setDeliveryChallanPreview({ type: "image", url: reader.result });
-    };
-    reader.readAsDataURL(file);
   };
-
 
   // Check if stock-in action is allowed based on purchase order status
   const status = (pdetails?.status || "").trim();
   const statusLower = status.toLowerCase();
-  
+
   // Allow stock-in unless status explicitly says "Stocked In" or "stocked_in"
   // Be lenient - let backend be the final authority on whether it can be stocked
   const canStockIn = !(
-    statusLower === "stocked in" || 
-    statusLower === "stocked_in" || 
+    statusLower === "stocked in" ||
+    statusLower === "stocked_in" ||
     statusLower === "stockedin"
   );
-  
+
   // Debug logging
   console.log("Stock-In Check:", {
     status,
     statusLower,
     canStockIn,
     purchaseOrderId: pdetails?.id,
-    fullPDetails: pdetails
+    fullPDetails: pdetails,
   });
 
   // Handler for "Confirm Stock In" button click (backend integration to follow)
-// 1. Fix the validation check in handleStockIn:
-const handleStockIn = async () => {
-  console.log("Stock In button clicked"); // Debug log
-  console.log("=== Stock In Debug Info ===");
-  console.log("Delivery Challan File:", deliveryChallanFile);
-  console.log("Damaged Rows:", damagedRows);
-  console.log("PDetails:", pdetails);
-  console.log("Token:", token ? "Present" : "Missing");
-  
-  // Remove frontend blocking - let backend handle validation
-  // Backend will return clear error if already stocked
-  console.log("Attempting stock-in for purchase order:", pdetails?.id, "Status:", pdetails?.status);
-  
-  if (!deliveryChallanFile) {
-    setError("Please upload the Delivery Challan image");
-    setIsModalOpen(true);
-    return;
-  }
+  // 1. Fix the validation check in handleStockIn:
+  const handleStockIn = async () => {
+    console.log("Stock In button clicked"); // Debug log
+    console.log("=== Stock In Debug Info ===");
+    console.log("Delivery Challan File:", deliveryChallanFile);
+    console.log("Damaged Rows:", damagedRows);
+    console.log("PDetails:", pdetails);
+    console.log("Token:", token ? "Present" : "Missing");
 
-  // Fix: Check for 'image' property instead of 'imageBase64'
-  if (damagedRows.some(d => !d.image)) {
-    setError("All damaged goods must have an image (under 100KB).");
-    setIsModalOpen(true);
-    return;
-  }
-
-  setConfirmLoading(true);
-  
-  try {
-    // Fix: Properly extract base64 data
-    const dcBase64 = typeof deliveryChallanFile === 'string' 
-      ? deliveryChallanFile.split(",")[1] 
-      : deliveryChallanFile;
-
-    const payload = {
-      dcCopy: deliveryChallanFile.split(",")[1], 
-      receivedItems: pdetails.items.map((item) => {
-        // Send ORIGINAL quantity, not adjusted quantity
-        return { 
-          productId: item.productId, 
-          receivedQuantity: item.quantity  // Original quantity from PO
-        };
-      }),
-      damagedGoods: damagedRows.map((d) => ({
-        productId: d.productId,
-        receivedQuantity: d.orderedQty,  // Original ordered qty
-        damagedQuantity: d.damagedQty,
-        reason: d.reason,
-        imageFile: {
-          data: d.image.split(",")[1],
-          type: "image/jpeg",
-        },
-      })),
-    };
-
-    console.log("Payload:", payload); // This should now print
-
-    const response = await axiosAPI.post(
-      `warehouses/incoming/purchases/${pdetails.id}`,
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    // Remove frontend blocking - let backend handle validation
+    // Backend will return clear error if already stocked
+    console.log(
+      "Attempting stock-in for purchase order:",
+      pdetails?.id,
+      "Status:",
+      pdetails?.status,
     );
 
-    console.log("API Response:", response); // Debug log
-    
-    // Show success modal instead of error modal
-    setSuccessMessage("Successfully stocked in!");
-    setIsSuccessModalOpen(true);
-    setDamagedRows([]);
-    setDeliveryChallanFile(null);
-    setDeliveryChallanPreview(null);
-    
-    // Refresh the purchase orders list in the parent component
-    if (onStockInSuccess) {
-      onStockInSuccess();
-    } else if (window.refreshPurchaseOrders) {
-      // Fallback to global refresh function
-      window.refreshPurchaseOrders();
+    if (!deliveryChallanFile) {
+      setError("Please upload the Delivery Challan image");
+      setIsModalOpen(true);
+      return;
     }
-    
-  } catch (err) {
-    console.error("API Error:", err);
-    console.error("Error Response:", err.response?.data);
-    
-    // Extract error message from response
-    const errorMessage = err.response?.data?.message || err.message || 'Please try again.';
-    const errorMessageLower = errorMessage.toLowerCase();
-    
-    // Handle specific error cases with clear messages
-    let userFriendlyMessage;
-    if (errorMessageLower.includes('already been stocked') || 
-        errorMessageLower.includes('already stocked') ||
-        errorMessageLower.includes('stocked in')) {
-      userFriendlyMessage = `⚠️ This purchase order has already been stocked in. You cannot stock it again.\n\nPurchase Order ID: ${pdetails?.id || 'N/A'}\nStatus: ${pdetails?.status || 'Unknown'}`;
-    } else if (errorMessageLower.includes('not found')) {
-      userFriendlyMessage = `⚠️ Purchase order not found. It may have been deleted or does not exist.`;
-    } else if (err.response?.status === 400) {
-      userFriendlyMessage = `❌ ${errorMessage}`;
-    } else {
-      userFriendlyMessage = `❌ Stock IN failed: ${errorMessage}`;
-    }
-    
-    console.log("Setting error message:", userFriendlyMessage);
-    setError(userFriendlyMessage);
-    setIsModalOpen(true);
-    
-    // Also show alert for immediate feedback
-    alert(userFriendlyMessage);
-  } finally {
-    setConfirmLoading(false);
-  }
-};
 
+    // Fix: Check for 'image' property instead of 'imageBase64'
+    if (damagedRows.some((d) => !d.image)) {
+      setError("All damaged goods must have an image (under 100KB).");
+      setIsModalOpen(true);
+      return;
+    }
+
+    setConfirmLoading(true);
+
+    try {
+      // Fix: Properly extract base64 data
+      const dcBase64 =
+        typeof deliveryChallanFile === "string"
+          ? deliveryChallanFile.split(",")[1]
+          : deliveryChallanFile;
+
+      const payload = {
+        dcCopy: deliveryChallanFile.split(",")[1],
+        receivedItems: pdetails.items.map((item) => {
+          // Send ORIGINAL quantity, not adjusted quantity
+          return {
+            productId: item.productId,
+            receivedQuantity: item.quantity, // Original quantity from PO
+          };
+        }),
+        damagedGoods: damagedRows.map((d) => ({
+          productId: d.productId,
+          receivedQuantity: d.orderedQty, // Original ordered qty
+          damagedQuantity: d.damagedQty,
+          reason: d.reason,
+          imageFile: {
+            data: d.image.split(",")[1],
+            type: "image/jpeg",
+          },
+        })),
+      };
+
+      console.log("Payload:", payload); // This should now print
+
+      const response = await axiosAPI.post(
+        `warehouses/incoming/purchases/${pdetails.id}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      console.log("API Response:", response); // Debug log
+
+      // Show success modal instead of error modal
+      setSuccessMessage("Successfully stocked in!");
+      setIsSuccessModalOpen(true);
+      setDamagedRows([]);
+      setDeliveryChallanFile(null);
+      setDeliveryChallanPreview(null);
+
+      // Refresh the purchase orders list in the parent component
+      if (onStockInSuccess) {
+        onStockInSuccess();
+      } else if (window.refreshPurchaseOrders) {
+        // Fallback to global refresh function
+        window.refreshPurchaseOrders();
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      console.error("Error Response:", err.response?.data);
+
+      // Extract error message from response
+      const errorMessage =
+        err.response?.data?.message || err.message || "Please try again.";
+      const errorMessageLower = errorMessage.toLowerCase();
+
+      // Handle specific error cases with clear messages
+      let userFriendlyMessage;
+      if (
+        errorMessageLower.includes("already been stocked") ||
+        errorMessageLower.includes("already stocked") ||
+        errorMessageLower.includes("stocked in")
+      ) {
+        userFriendlyMessage = `⚠️ This purchase order has already been stocked in. You cannot stock it again.\n\nPurchase Order ID: ${pdetails?.id || "N/A"}\nStatus: ${pdetails?.status || "Unknown"}`;
+      } else if (errorMessageLower.includes("not found")) {
+        userFriendlyMessage = `⚠️ Purchase order not found. It may have been deleted or does not exist.`;
+      } else if (err.response?.status === 400) {
+        userFriendlyMessage = `❌ ${errorMessage}`;
+      } else {
+        userFriendlyMessage = `❌ Stock IN failed: ${errorMessage}`;
+      }
+
+      console.log("Setting error message:", userFriendlyMessage);
+      setError(userFriendlyMessage);
+      setIsModalOpen(true);
+
+      // Also show alert for immediate feedback
+      alert(userFriendlyMessage);
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
   // Adjust received quantities based on damaged goods totals
   const adjustedReceivedQuantities = pdetails.items.map((item) => {
@@ -341,14 +346,14 @@ const handleStockIn = async () => {
     pdetails?.status === "Received"
       ? "#d4edda"
       : pdetails?.status === "Stocked In" || pdetails?.status === "stocked_in"
-      ? "#cce5ff"
-      : "#f8d7da";
+        ? "#cce5ff"
+        : "#f8d7da";
   const statusColor =
     pdetails?.status === "Received"
       ? "#155724"
       : pdetails?.status === "Stocked In" || pdetails?.status === "stocked_in"
-      ? "#004085"
-      : "#721c24";
+        ? "#004085"
+        : "#721c24";
 
   return (
     <>
@@ -462,9 +467,7 @@ const handleStockIn = async () => {
                   <td>{idx + 1}</td>
                   <td>{item.SKU}</td>
                   <td>{item.name}</td>
-                  <td>
-                    {item.type === "packed" ? "packets" : item.unit}
-                  </td>
+                  <td>{item.type === "packed" ? "packets" : item.unit}</td>
                   <td>{item.quantity}</td>
                   <td>{item.totalAmount}</td>
                 </tr>
@@ -490,11 +493,7 @@ const handleStockIn = async () => {
             triggerText="Preview PDF"
           />
           {canStockIn && (
-            <DialogRoot
-              placement={"center"}
-              size={"lg"}
-              className={styles.mdl}
-            >
+            <DialogRoot placement={"center"} size={"lg"} className={styles.mdl}>
               <DialogTrigger asChild>
                 <button className="submitbtn">Stock IN</button>
               </DialogTrigger>
@@ -529,16 +528,16 @@ const handleStockIn = async () => {
                         <tbody>
                           {pdetails.items.map((item) => {
                             const adj = adjustedReceivedQuantities.find(
-                              (adj) => adj.SKU === item.SKU
+                              (adj) => adj.SKU === item.SKU,
                             );
-                            const color = getDamageColor(adj?.damagePercent || 0);
+                            const color = getDamageColor(
+                              adj?.damagePercent || 0,
+                            );
                             return (
                               <tr key={item.id}>
                                 <td>{item.name}</td>
                                 <td>{item.quantity}</td>
-                                <td
-                                  style={{ color, fontWeight: "600" }}
-                                >
+                                <td style={{ color, fontWeight: "600" }}>
                                   {adj?.receivedQty ?? item.quantity}
                                 </td>
                               </tr>
@@ -550,7 +549,8 @@ const handleStockIn = async () => {
                       {/* Delivery Challan Upload */}
                       <div style={{ marginBottom: 20 }}>
                         <label style={{ fontWeight: 600, display: "block" }}>
-                          Upload Delivery Challan <span style={{ color: "#dc3545" }}>*</span>:
+                          Upload Delivery Challan{" "}
+                          <span style={{ color: "#dc3545" }}>*</span>:
                         </label>
                         <input
                           type="file"
@@ -560,7 +560,8 @@ const handleStockIn = async () => {
                         />
                         {deliveryChallanFile && (
                           <div style={{ marginTop: 8 }}>
-                            Selected file: <strong>{deliveryChallanFile.name}</strong>
+                            Selected file:{" "}
+                            <strong>{deliveryChallanFile.name}</strong>
                           </div>
                         )}
                         {deliveryChallanPreview?.type === "pdf" && (
@@ -569,25 +570,40 @@ const handleStockIn = async () => {
                             type="application/pdf"
                             width="100%"
                             height="300px"
-                            style={{ marginTop: 8, border: "1px solid #ccc", borderRadius: 4 }}
+                            style={{
+                              marginTop: 8,
+                              border: "1px solid #ccc",
+                              borderRadius: 4,
+                            }}
                           />
                         )}
                         {deliveryChallanPreview?.type === "image" && (
                           <img
                             src={deliveryChallanPreview.url}
                             alt="Delivery Challan Preview"
-                            style={{ marginTop: 8, maxHeight: 200, borderRadius: 4 }}
+                            style={{
+                              marginTop: 8,
+                              maxHeight: 200,
+                              borderRadius: 4,
+                            }}
                           />
                         )}
                       </div>
 
                       {/* Damaged Goods Section */}
                       <h5
-                        style={{ fontWeight: 600, marginTop: 16, marginBottom: 8 }}
+                        style={{
+                          fontWeight: 600,
+                          marginTop: 16,
+                          marginBottom: 8,
+                        }}
                       >
                         Damaged Goods
                       </h5>
-                      <table className="table table-bordered" style={{ width: "100%" }}>
+                      <table
+                        className="table table-bordered"
+                        style={{ width: "100%" }}
+                      >
                         <thead>
                           <tr>
                             <th>#</th>
@@ -618,8 +634,11 @@ const handleStockIn = async () => {
                               >
                                 <option value="">--select product--</option>
                                 {pdetails.items.map((item) => {
-                                  const totalDamaged = getTotalDamagedForSku(item.SKU);
-                                  const disabled = totalDamaged >= item.quantity;
+                                  const totalDamaged = getTotalDamagedForSku(
+                                    item.SKU,
+                                  );
+                                  const disabled =
+                                    totalDamaged >= item.quantity;
                                   return (
                                     <option
                                       key={item.id}
@@ -645,22 +664,30 @@ const handleStockIn = async () => {
                               )}
                             </td>
                             <td style={{ textAlign: "center" }}>
-                              {
-                                pdetails.items.find((i) => i.SKU === selectedSku)
-                                  ?.quantity || ""
-                              }
+                              {pdetails.items.find((i) => i.SKU === selectedSku)
+                                ?.quantity || ""}
                             </td>
                             <td>
                               <input
                                 type="number"
                                 min={1}
-                                step={pdetails.items.find((i) => i.SKU === selectedSku)?.type === "loose" ? "0.01" : "1"}
+                                step={
+                                  pdetails.items.find(
+                                    (i) => i.SKU === selectedSku,
+                                  )?.type === "loose"
+                                    ? "0.01"
+                                    : "1"
+                                }
                                 max={
-                                  pdetails.items.find((i) => i.SKU === selectedSku)?.quantity || 1
+                                  pdetails.items.find(
+                                    (i) => i.SKU === selectedSku,
+                                  )?.quantity || 1
                                 }
                                 value={damagedQty}
                                 onChange={(e) => {
-                                  const product = pdetails.items.find((i) => i.SKU === selectedSku);
+                                  const product = pdetails.items.find(
+                                    (i) => i.SKU === selectedSku,
+                                  );
                                   let value = e.target.value;
 
                                   if (product?.type === "packed") {
@@ -700,7 +727,9 @@ const handleStockIn = async () => {
                               <input
                                 type="text"
                                 value={damagedReason}
-                                onChange={(e) => setDamagedReason(e.target.value)}
+                                onChange={(e) =>
+                                  setDamagedReason(e.target.value)
+                                }
                                 placeholder="Reason for damage"
                                 style={{
                                   border: formErrors.reason
@@ -798,7 +827,11 @@ const handleStockIn = async () => {
                                     <img
                                       src={row.imagePreview}
                                       alt="Damaged"
-                                      style={{ width: 40, height: 40, borderRadius: 4 }}
+                                      style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 4,
+                                      }}
                                     />
                                   ) : (
                                     "-"
@@ -823,11 +856,13 @@ const handleStockIn = async () => {
                         <button
                           className="cancelbtn me-2"
                           onClick={(e) => {
-                              e.preventDefault(); // Add this
-                              e.stopPropagation(); // Add this
-                              const closeButton = document.querySelector("[data-radix-dialog-close]");
-                              if (closeButton) closeButton.click();
-                            }}
+                            e.preventDefault(); // Add this
+                            e.stopPropagation(); // Add this
+                            const closeButton = document.querySelector(
+                              "[data-radix-dialog-close]",
+                            );
+                            if (closeButton) closeButton.click();
+                          }}
                           disabled={confirmLoading}
                         >
                           Cancel
@@ -841,7 +876,9 @@ const handleStockIn = async () => {
                           }}
                           disabled={confirmLoading}
                         >
-                          {confirmLoading ? "Processing..." : "Confirm Stock In"}
+                          {confirmLoading
+                            ? "Processing..."
+                            : "Confirm Stock In"}
                         </button>
                       </div>
                     </div>
