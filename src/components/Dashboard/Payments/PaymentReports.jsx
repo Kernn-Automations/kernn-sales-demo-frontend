@@ -98,10 +98,10 @@ function PaymentReports({ navigate }) {
         console.log(res);
         setTotalPages(res.data.totalPages);
 
-        setSalesOrders(res.data.salesOrders || []);
+        setSalesOrders(res.data.data || []);
       } catch (e) {
         setError(
-          e.response?.data?.message || "Failed to fetch payment reports."
+          e.response?.data?.message || "Failed to fetch payment reports.",
         );
         setIsModalOpen(true);
       } finally {

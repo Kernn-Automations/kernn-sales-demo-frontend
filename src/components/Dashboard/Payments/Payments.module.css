@@ -27,6 +27,138 @@
   transform: scale(1.05);
 }
 
+.paymentCard {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  width: 260px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Header */
+.cardHeader {
+  display: flex;
+  justify-content: center;
+}
+
+.paymentMode {
+  background: #f1f3f5;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Amount */
+.amountRow {
+  text-align: center;
+}
+
+.amountLabel {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.amountValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #212529;
+  margin-top: 2px;
+}
+
+/* Details */
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #495057;
+}
+
+/* Image */
+.imageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.imageWrapper img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: zoom-in;
+  border: 1px solid #dee2e6;
+}
+
+.imageHint {
+  font-size: 11px;
+  color: #868e96;
+}
+
+/* Status */
+.statusWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.statusBadge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusPending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusApproved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusRejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Actions */
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.approveBtn,
+.rejectBtn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  color: #fff;
+}
+
+.approveBtn {
+  background: #28a745;
+}
+
+.rejectBtn {
+  background: #dc3545;
+}
+
+.approveBtn:disabled,
+.rejectBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* New styles for the ImageZoomModal */
 .imageZoomBackdrop {
@@ -357,7 +489,6 @@
 
 /* Fix z-index issue for payment approvals modal - Use global hierarchy */
 
-
 /* Payment-specific modal styling without z-index conflicts */
 .mdl-title {
   position: relative;
@@ -600,7 +731,7 @@
   letter-spacing: 1.5%;
 }
 
-.taxform textarea{
+.taxform textarea {
   width: 300px;
   height: 80px;
   padding-left: 4px;
@@ -612,7 +743,6 @@
   font-weight: 500;
   font-size: 14px;
 }
-
 
 .tableform input,
 .tableform select {
@@ -670,4 +800,3 @@
   border-radius: 3px;
   border: 1px solid #bfbfbf !important;
 }
-

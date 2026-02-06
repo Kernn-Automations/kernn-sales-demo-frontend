@@ -43,6 +43,9 @@ const ReturnRoutes = lazy(() => import("./Returns/ReturnRoutes"));
 const TeamsRoutes = lazy(() => import("./Teams/TeamsRoutes"));
 const DivisionManager = lazy(() => import("./DivisionManager"));
 const LicenseRoutes = lazy(() => import("./Licenses/LicensingRoutes"));
+const ManufacturingRoutes = lazy(
+  () => import("./Manufacturing/ManufacturingRoutes"),
+);
 
 export default function Dashboard({
   admin,
@@ -71,7 +74,7 @@ export default function Dashboard({
           const parsed = JSON.parse(userData);
           console.log(
             "Dashboard - User data updated from localStorage:",
-            parsed
+            parsed,
           );
           setStoredUser(parsed);
         }
@@ -135,7 +138,7 @@ export default function Dashboard({
         console.log("Dashboard - showAllDivisions:", showAllDivisions);
         console.log(
           "Dashboard - final showAll flag:",
-          showAllDivisions || divisionId === "all"
+          showAllDivisions || divisionId === "all",
         );
         console.log("Dashboard - Division ID type check:", {
           divisionId,
@@ -149,7 +152,7 @@ export default function Dashboard({
           "/employees",
           localStorage.getItem("accessToken"),
           divisionId, // Pass the ID, not the object
-          showAllDivisions || divisionId === "all"
+          showAllDivisions || divisionId === "all",
         );
         setEmployees(data.data || []);
       } catch (err) {
@@ -183,7 +186,7 @@ export default function Dashboard({
         <>
           {console.log(
             "Dashboard - Showing DivisionSelector because selectedDivision is:",
-            selectedDivision
+            selectedDivision,
           )}
           <DivisionSelector userData={storedUser} />
         </>
@@ -192,7 +195,7 @@ export default function Dashboard({
         <>
           {console.log(
             "Dashboard - Hiding DivisionSelector because selectedDivision is:",
-            selectedDivision
+            selectedDivision,
           )}
         </>
       )}
@@ -248,6 +251,15 @@ export default function Dashboard({
                     </Suspense>
                   }
                 />
+                <Route
+                  path="/manufacturing/*"
+                  element={
+                    <Suspense fallback={<RouteSkeleton />}>
+                      <ManufacturingRoutes />
+                    </Suspense>
+                  }
+                />
+
                 <Route
                   path="/purchases/*"
                   element={

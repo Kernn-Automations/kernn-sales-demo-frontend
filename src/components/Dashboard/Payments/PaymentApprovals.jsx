@@ -34,11 +34,11 @@ function PaymentApprovals({ navigate }) {
         setSalesOrders([]);
         setFilteredSalesOrders([]);
 
-        const query = `/payment-requests?status=Pending&page=${pageNo}&limit=${limit}`;
+        const query = `/payment-requests?approvalStatus=Pending&page=${pageNo}&limit=${limit}`;
 
         const res = await axiosAPI.get(query);
         console.log(res.data);
-        setSalesOrders(res.data.salesOrders || []);
+        setSalesOrders(res.data.data || []);
         setTotalPages(res.data.totalPages);
       } catch (e) {
         setError(e.response?.data?.message || "Something went wrong.");
@@ -52,16 +52,26 @@ function PaymentApprovals({ navigate }) {
 
   // Filter by customer name
   useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredSalesOrders(salesOrders);
+      return;
+    }
+
     const filtered = salesOrders.filter((order) =>
-      order.customer?.name?.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      order.customer?.name
+        ?.toLowerCase()
+        .includes(searchTerm.trim().toLowerCase()),
     );
+
     setFilteredSalesOrders(filtered);
   }, [searchTerm, salesOrders]);
 
   let index = 1;
 
-  function calculateTotalAmount(paymentRequests) {
-    return paymentRequests.reduce((sum, pr) => sum + (pr.netAmount || 0), 0).toFixed(2);
+  function calculateTotalAmount(paymentRequests = []) {
+    return paymentRequests
+      .reduce((sum, pr) => sum + Number(pr.amount || 0), 0)
+      .toFixed(2);
   }
 
   function openModal(salesOrder) {
@@ -152,21 +162,27 @@ function PaymentApprovals({ navigate }) {
                 </tbody>
               </table>
               <div className="row m-0 p-0 pt-3 justify-content-between">
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
-                {pageNo > 1 && (
-                  <button onClick={() => setPageNo(pageNo - 1)}>
-                    <span><FaArrowLeftLong /></span> Previous
-                  </button>
-                )}
+                <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
+                  {pageNo > 1 && (
+                    <button onClick={() => setPageNo(pageNo - 1)}>
+                      <span>
+                        <FaArrowLeftLong />
+                      </span>{" "}
+                      Previous
+                    </button>
+                  )}
+                </div>
+                <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
+                  {totalPages > 1 && pageNo < totalPages && (
+                    <button onClick={() => setPageNo(pageNo + 1)}>
+                      Next{" "}
+                      <span>
+                        <FaArrowRightLong />
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
-                {totalPages > 1 && pageNo < totalPages && (
-                  <button onClick={() => setPageNo(pageNo + 1)}>
-                    Next <span><FaArrowRightLong /></span>
-                  </button>
-                )}
-              </div>
-            </div>
             </div>
           </div>
         </>
